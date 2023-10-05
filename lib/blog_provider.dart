@@ -2,14 +2,20 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:subspace_task/model.dart';
+import 'package:subspace_task/blog_model.dart';
+import 'package:hive/hive.dart';
 
-class BlogProvider with ChangeNotifier {
+class BlogProvider extends ChangeNotifier {
   List<Blog> _blogs = [];
   List<Blog> _favoriteBlogs = [];
 
-  List<Blog> get blogs => _blogs;
-  List<Blog> get favoriteBlogs => _favoriteBlogs;
+  final Box<Blog> _blogBox = Hive.box('blogBox');
+  List<Blog> get blogs => _blogBox.values.toList();
+  List<Blog> get favoriteBlogs =>
+      blogs.where((blog) => blog.isFavorite).toList();
+
+  // List<Blog> get blogs => _blogs;
+  // List<Blog> get favoriteBlogs => _favoriteBlogs;
 
   Future<void> fetchBlogs() async {
     const String url = 'https://intent-kit-16.hasura.app/api/rest/blogs';
@@ -36,8 +42,13 @@ class BlogProvider with ChangeNotifier {
         _blogs = blogData;
         notifyListeners();
 
+        for (var blog in _blogs) {
+          _blogBox.put(blog.id, blog);
+        }
+
         print('Fetched data: $_blogs');
       } else {
+        print('Response Status Code: ${response.statusCode}');
         throw Exception('Failed to fetch data');
       }
     } catch (e) {
@@ -46,13 +57,19 @@ class BlogProvider with ChangeNotifier {
     }
   }
 
+  // void toggleFavorite(Blog blog) {
+  //   if (blog.isFavorite) {
+  //     _favoriteBlogs.remove(blog);
+  //   } else {
+  //     _favoriteBlogs.add(blog);
+  //   }
+  //   blog.isFavorite = !blog.isFavorite;
+  //   notifyListeners();
+  // }
+
   void toggleFavorite(Blog blog) {
-    if (blog.isFavorite) {
-      _favoriteBlogs.remove(blog); 
-    } else {
-      _favoriteBlogs.add(blog);
-    }
-    blog.isFavorite = !blog.isFavorite; 
+    blog.isFavorite = !blog.isFavorite;
+    _blogBox.put(blog.id, blog);
     notifyListeners();
   }
 }

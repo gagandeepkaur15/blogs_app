@@ -5,7 +5,7 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:subspace_task/blog_provider.dart';
 import 'package:subspace_task/details_page.dart';
 import 'package:subspace_task/favourites_page.dart';
-import 'package:subspace_task/model.dart';
+import 'package:subspace_task/blog_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
